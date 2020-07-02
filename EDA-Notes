@@ -115,29 +115,250 @@ df1.reset_index()
 
 df1.reset_index(inplace=True) # here inplace will apply the changes in the original dataframe 'df1'
 
+#Renaming columns - Subject to Sub, Score to Marks; Renaming Index from 0 to a, 1 to b.
+df1.rename(columns={'Subject':'Sub','Score':'Marks'},index={0:'a',1:'b'},inplace = True)
+
+#Replacing 'Semester 1', 'Semester 2' column names with 'Sem1' and 'Sem 2' respectively
+df1.replace(['Semester 1','Semester 2'],['Sem 1','Sem 2'])
+
+#Renaming 'Mathematics' with 'Maths' and 'Science' with 'Sci using map()
+sub = {'Mathematics':'Maths','Science':'Sci'}
+df1['Sub'].map(sub)
+
+#Appending a dataframe
+f = left_frame.append(right_frame, sort=True) #appended dataframe stored in 'f'
+                                              #columns are sorted alphabetically due to 'sort=True'
 ---------------------------------------------------------------------------------------
+#Pivot Tables
+#Index of the left are Name and Subject in that order. Values in column is Sum of Scores obtained
+pv=pd.pivot_table(df,index=['Name','Subject'],aggfunc='sum',values='Score')
 
-
-
-
-
-
-
-
-
-
-
-
----------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
+## Reshape the dataframe with pivot(). Here, Date will be rowindex and different city values in City column will be the new columns of df
+df.pivot(index='Date', columns='City')
 
 ---------------------------------------------------------------------------------------
+#Importing Datasets in different formats
+
+#When the columns are separated by space without column names. Names [] should match the number of columns in dataset.
+pd.read_csv('u.data',sep="\t",names=['user_id','item_id','rating','timestamp']).head()
+
+#Use latin-1 encoder when utf-8 codec fails during dataset import
+pd.read_csv('u.item',sep="|",encoding="latin-1",names=list("ABCDEFGHIJKLMNOPQRSTUVWX")).head()
+
+---------------------------------------------------------------------------------------
+#isin() function to check whether the dataframe column value is present in given list.
+df[df['Name'].isin(l1)]
+# First it checks whether the 'name' column in df has the names present in 'l1'
+# if present ouput will be true, and then
+
+---------------------------------------------------------------------------------------
+#To filter out a specific value from the groupby object
+x = df.groupby('Subject')
+x.get_group("Science")
+
+#groupby functions
+df.groupby('Subject').first()
+df.groupby(['Exam','Subject'])['Score'].mean()
+df.groupby('Name').agg({'Score':['mean','sum'],'Attendance':['mean','sum']})
+
+----------------------------------EDA--------------------------------------------------------
+#To load dataset in seaborn (without pandas)
+titanic = sns.load_dataset('titanic')
+titanic.describe()   # decribe only gives the continous columns. Excludes categorical columns automatically
+titanic.describe(include='object').T  # ".T" is used for transpose
+titanic.describe(include='all')  #used for see all type columns in dataframe
+
+# Function to calculate missing values by column
+def missing_values_table(df):
+        # Total missing values
+        mis_val = df.isnull().sum()
+        
+        # Percentage of missing values
+        mis_val_percent = 100 * df.isnull().sum() / len(df)
+        
+        # Make a table with the results
+        mis_val_table = pd.concat([mis_val, mis_val_percent], axis=1)
+        
+        # Rename the columns
+        mis_val_table_ren_columns = mis_val_table.rename(
+        columns = {0 : 'Missing Values', 1 : '% of Total Values'})
+        
+        # Sort the table by percentage of missing descending
+        mis_val_table_ren_columns = mis_val_table_ren_columns[
+            mis_val_table_ren_columns.iloc[:,1] != 0].sort_values(
+        '% of Total Values', ascending=False).round(1)
+        
+        # Print some summary information
+        print ("Your selected dataframe has " + str(df.shape[1]) + " columns.\n"      
+            "There are " + str(mis_val_table_ren_columns.shape[0]) +
+              " columns that have missing values.")
+        
+        # Return the dataframe with missing information
+        return mis_val_table_ren_columns
+
+titanic['embarked'].value_counts()
+titanic['embarked'].fillna("S",inplace=True)
+am1 = round(titanic[titanic['alone']==True]['age'].mean())
+am2 = round(titanic[titanic['alone']==False]['age'].mean())
+
+#Filling NA values with mean of the corresponding column
+titanic['age'] = titanic.groupby('alone')['age'].transform(lambda x:x.fillna(round(x.mean())))
+titanic.isnull().sum() #check the null value count for each column
+
+--------------------------DATAVIZ---------------------------------------
+
+Line Plot
+A line graph is commonly used to display change over time as a series of data points connected by straight line segments on two axes. 
+The line graph therefore helps to determine the relationship between two sets of values, with one data set always being dependent on the other set.
+
+x = np.linspace(0, 6, 11)
+y = x ** 2
+plt.plot(x, y) 
+plt.xlabel('X Axis')
+plt.ylabel('Y Axis')
+plt.show()
+
+Scatter plot
+plt.scatter(x,y)
+plt.show()
+
+Bar Plot
+When to use: If you have comparative data that you would like to represent through a chart then a bar chart would be the best option. This type of chart is one of the more familiar options as it is easy to interpret. These charts are useful for displaying data that is classified into nominal or odinal categories. 
+
+# visualize counts
+titanic['class'].value_counts().plot(kind='bar',color='g')   
+plt.title('Number of Passengers as per Class')
+plt.ylabel('Counts')
+plt.xlabel('Class of Passengers as per their ticket ')
+plt.show()
+
+Pie Plot
+When to use pie plot :- A pie chart is best used when trying to work out the composition of something. If you have categorical data then using a pie chart would work really well as each slice can represent a different category.
+
+z = titanic['embarked'].map({'C':'Cherbourg','Q':'Queenstown','S':'Southampton'})
+#mapping to see full name of places of embarkment
+plt.figure(figsize=(6,6))   # increase fifure size
+z.value_counts().plot(kind='pie',explode = (0, 0.1, 0),autopct='%1.1f%%')
+# explode is to remove one piece of pie
+# autopct is to get percent on the pie chart
+plt.title('Passengers starting from')
+plt.show()
+
+Histogram plot 
+When to use :- A histogram is a great tool for quickly assessing a probability distribution that is intuitively understood by almost any audience. 
+Python offers a handful of different options for building and plotting histograms. 
+Most people know a histogram by its graphical representation, which is similar to a bar graph:
+Y-axis - Counts; X-axis - Continous Variable
+
+plt.hist(titanic['fare'],bins=25,color='teal')
+plt.show()
+
+
+Density Plot
+
+What is the purpose of density plot/ kde-kernal density plot and where to be used :-
+A Density Plot visualises the distribution of data over a continuous interval or time period. 
+This chart is a variation of a Histogram that uses kernel smoothing to plot values, allowing for smoother distributions by smoothing out the noise. 
+The peaks of a Density Plot help display where values are concentrated over the interval.
+An advantage Density Plots have over Histograms :- is that they're better at determining the distribution shape because they're not affected by the number of bins used (each bar used in a typical histogram). A Histogram comprising of only 4 bins wouldn't produce a distinguishable enough shape of distribution as a 20-bin Histogram would. However, with Density Plots, this isn't an issue. 
+
+titanic.age.plot(kind='kde', title='Density plot for Age', color='gold')
+plt.show()
+
+
+Area plot
+
+What is the purpose of Area plot :-
+An area chart is a good way to demonstrate trends over time to the viewer.
+This chart is based on the line chart. 
+The filled area can give a greater sense of the trends in a particular dataset.
+
+flights = sns.load_dataset("flights")
+flights.groupby('year')['passengers'].sum().sort_index().plot.area(color='cyan')
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Box plot
+
+What is an boxplot:
+A Box Plot is the visual representation of the statistical five number summary of a given data set.
+Box and whisker plots have been used steadily since their introduction in 1969 and are varied in both their potential visualizations as well as use cases across many disciplines in statistics and data analysis.
+A Five Number Summary includes:-
+Minimum - Lowest value/record in that attribute/column .
+First Quartile -25TH Percentile
+Median (Second Quartile) - Middle value/record in that attribute/column .
+Third Quartile - 75TH Percentile
+Maximum - Lowest value/record in that attribute/column .
+
+plt.boxplot(flights.passengers,vert=False)
+plt.show()
+
+---------------------------------------------------------------------------------------
+
 
