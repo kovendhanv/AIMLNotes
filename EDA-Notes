@@ -1,0 +1,143 @@
+----------------------------------NUMPY-----------------------------------------------------
+
+#Different ways to create a numpy array
+
+# First creates a list with 0 to 8 numbers. Then list is reshaped into a 3x3 matrix.
+ca = np.arange(9).reshape(3,3) 
+
+--------------------------------------------------------------------------------------
+
+#Array Conversion
+
+#ravel() function is used to convert 2D array into 1D array
+a = np.array([[1,2,3],[4,5,6]])
+a = b.ravel()   
+print(a)
+#Output:   [1,2,3,4,5,6]
+
+---------------------------------------------------------------------------------------
+newc=np.vstack((newa,newb))  # vstack is for Vertical stacking of array   
+newc=np.hstack((newa,newb))  # hstack is for Horizontal stacking of array
+
+---------------------------------------------------------------------------------------
+#Array split - Horizontal split with hsplit
+biga = np.arange(60).reshape(6,10)
+print(biga.shape) #(6,10)
+
+sma = np.hsplit(biga,2) 
+print(sma[0].shape) # (6,5)
+print(sma[1].shape) # (6,5)
+---------------------------------------------------------------------------------------
+
+#Boolean operations in Arrays
+
+#Simple boolean filter
+a = [[1,2,3],[4,5,6],[7,8,9]] #3D Array
+a[a>5]
+#Output:  array([6,7,8,9])
+
+-------------------------------PANDAS-------------------------------------
+#Create a DataFrame from Dict
+d = {                                                               
+    'Name':['Alisa','Bobby','jodha','jack','raghu','Cathrine',
+            'Alisa','Bobby','kumar','Alisa','Alex','Cathrine'],
+    'Age':[26,24,23,22,23,24,26,24,22,23,24,24],
+    'Score':[85,63,55,74,31,77,85,63,42,62,89,77]}
+ 
+df = pd.DataFrame(d)                                # converting dict to dataframe
+                                                    # Keys get converted to column names and values to column values
+df
+
+---------------------------------------------------------------------------------------
+#Unique values of the df column
+df['Name'].unique()
+
+#number of Unique values of the df column
+df['Name'].nunique()
+
+#Dealing with duplicates
+df.drop_duplicates()      # It will drop duplicates of a row but keeps the first one; No actual change in original dataframe.
+
+df.drop_duplicates(inplace = True)      # It will drop duplicates of a row but keeps the first one; Changes updated in original dataframe.
+df = df.drop_duplicates()
+
+df.drop_duplicates(keep='last')         # If we want to keep the last of the duplicated rows
+
+df.duplicated()     #return boolen value for the rows which are duplicated
+
+df.drop_duplicates(['Name'], keep='last')  # If we want to drop duplicates based on rows of one attribute and keeps the last one
+
+---------------------------------------------------------------------------------------
+#Dealing with dropping and delete
+df.drop([1,2])  # drops 1st and 2nd row
+df[df.Name != 'Alisa']    #drop the rows having name 'Alisa'
+df.drop(df.index[2])      # drops the second row
+df[:-3]  # Drop bottom 3 rows
+df.drop('Age',axis=1) # drop a column based on name, axis = 1 means column
+df.drop(df.columns[2],axis=1) # drop a column based on column index
+
+del df['Age']  #deletes it from the main dataframe
+
+----------------------------------------------------------------------------------------
+
+#Creating new column objects for an existing Column
+df['Subject'] = ['Mathematics','Mathematics','Mathematics','Science','Science','Science','History','History','History',
+                 'Economics','Economics','Economics']             #creating a new column subjects
+
+#Ordering existing columns manually
+df = df[['Name','Subject','Score']] #setting order of columns
+
+# Ranking of score in ascending order
+df['score_rank']=df['Score'].rank() # minimum value of score gets rank 1 and if score is same such as in case of rank 5, 5.5 is given to both and 6th is skipped
+
+# Ranking of score in descending order
+df['score_rank']=df['Score'].rank(ascending=False) # maximum value of score gets rank 1 and if score is same such as in case of rank 2, 2.5 is given to both and 3rd is skipped
+
+# Ranking of score in descending order based on min method of ranking
+df['score_rank']=df['Score'].rank(ascending=0,method='min')
+# maximum value of score gets rank 1
+# if score is same of two values instead of giving 2 and 3 or 2.5 to both (mentioned above)
+# it will give 2 to both and skip 3rd
+
+# Rank the dataframe in python pandas by Group.
+df["group_rank"] = df.groupby("Subject")["Score"].rank(ascending=0,method='dense')
+# ranks are given based on each subject # maximum value gets rank 1 and no number is skipped
+
+---------------------------------------------------------------------------------------
+#Setting two indices for a single Dataframe
+df1=df.set_index(['Exam', 'Subject'])  #new dataframe df1 with tw0 index's (exam and subject)
+
+#To view the set Index for Dataframe
+df1.index
+
+#To reset the index as 0,1,2....
+df1.reset_index() 
+
+df1.reset_index(inplace=True) # here inplace will apply the changes in the original dataframe 'df1'
+
+---------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+---------------------------------------------------------------------------------------
+
