@@ -362,6 +362,9 @@ plt.show()
 Bar Plot
 When to use: If you have comparative data that you would like to represent through a chart then a bar chart would be the best option. This type of chart is one of the more familiar options as it is easy to interpret. These charts are useful for displaying data that is classified into nominal or odinal categories. 
 
+#Stacked bar plot
+f3.plot(kind='bar',stacked=True)
+
 # visualize counts
 titanic['class'].value_counts().plot(kind='bar',color='g')   
 plt.title('Number of Passengers as per Class')
@@ -407,7 +410,13 @@ Y-axis - Counts; X-axis - Continous Variable
 plt.hist(titanic['fare'],bins=25,color='teal')
 plt.show()
 
-
+'''
+Sturges rule :A rule for determining the desirable number of groups into which a distribution of observations should be classified; 
+the number of groups or classes is 
+1 + 3.3 log n, 
+where n is the number of observations. #optimal bin size selection with Sturges rule
+'''
+------------------------------------------------
 Density Plot
 
 What is the purpose of density plot/ kde-kernal density plot and where to be used :-
@@ -452,6 +461,7 @@ sns.distplot(data)
 
 #Cumulative Distribution of a variable
 sns.distplot(data, hist_kws=dict(cumulative=True), kde_kws=dict(cumulative=True))
+plt.hist(A['Price'],bins=10,histtype='step',cumulative=True) #ogive plot
 
 #Plotting two numeric and one categorical variables
 sns.scatterplot(data1['Distance'], data1['Price'], hue=data1['Type'], palette='Set2') 
