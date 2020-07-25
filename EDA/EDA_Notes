@@ -1,7 +1,15 @@
 AIMLNotes/EDA-Notes
 @kovendhanv
 kovendhanv Update EDA-Notes
-Latest commit b701a21 22 days ago
+
+----------------------------PIP INSTALL FROM JUPYTER NOTEBOOK----------------------  
+  #Installation step 
+#!pip install pandas-profiling
+#or 
+import sys
+!{sys.executable} -m pip install pandas-profiling
+
+!pip install -U pandas-profiling
   
 ----------------------------------NUMPY-----------------------------------------------------
 
@@ -261,8 +269,7 @@ df['Car'].value_counts()
 df.loc[pd.isnull(df['Car']), ['Car']] = df['Car'].mode()
 round(100*(df.isnull().sum()/len(df.index)), 2)
 
-
-
+----------------------------------------------------------------------------
 #Show missing values in Heatmap
 sns.heatmap(df.isnull())
 plt.show()
@@ -294,6 +301,19 @@ def missing_values_table(df):
         
         # Return the dataframe with missing information
         return mis_val_table_ren_columns
+-------------------------------------------------------------------------
+def missing_check(df):
+    total = df.isnull().sum().sort_values(ascending=False)   # total number of null values
+    percent = (df.isnull().sum()/df.isnull().count()).sort_values(ascending=False)  # percentage of values that are null
+    missing_data = pd.concat([total, percent], axis=1, keys=['Total', 'Percent'])  # putting the above two together
+    return missing_data # return the dataframe
+missing_check(data)
+--------------------------------------------------------------------------
+
+#One-way tables:
+my_tab = pd.crosstab(index=data["age"],  # Make a crosstab
+                     columns="count")                  # Name the count column
+my_tab
 
 titanic['embarked'].value_counts()
 titanic['embarked'].fillna("S",inplace=True)
@@ -304,9 +324,25 @@ am2 = round(titanic[titanic['alone']==False]['age'].mean())
 titanic['age'] = titanic.groupby('alone')['age'].transform(lambda x:x.fillna(round(x.mean())))
 titanic.isnull().sum() #check the null value count for each column
 
+#Checking skewness
+Data.skew()   # to measure the skewness of every attribute
 
+#Histogram with Skewness
+import scipy.stats as stats
+#convert pandas DataFrame object to numpy array and sort
+h = np.asarray(Data['GRE Score'])
+h = sorted(h)
+#use the scipy stats module to fit a normal distirbution with same mean and standard deviation
+fit = stats.norm.pdf(h, np.mean(h), np.std(h))  
+#plot both series on the histogram
+plt.plot(h,fit,'-',linewidth = 2,label="Normal distribution with same mean and var")
+plt.hist(h,density=True,bins = 100,label="Actual distribution")      
+plt.legend()
+plt.show()
 
 --------------------------DATAVIZ---------------------------------------
+#Scatter plot across all the numeric variables in a dataframe
+sns.pairplot(Data, kind="reg")  # plots scatter plots for every pair of attributes and histograms along the diagonal
 
 Line Plot
 A line graph is commonly used to display change over time as a series of data points connected by straight line segments on two axes. 
@@ -333,6 +369,23 @@ plt.ylabel('Counts')
 plt.xlabel('Class of Passengers as per their ticket ')
 plt.show()
 
+----------------------------
+#Numerical vs Categorical variable Bar Plot
+
+plt.figure(figsize=(10,5))  # setting the figure size
+ax = sns.barplot(x='age', y='suicides_no', data=data, palette='muted')  # barplot
+
+data.groupby(by=['country'])['suicides_no'].sum().reset_index().sort_values(['suicides_no']).tail(10).plot(x='country',
+                                                                                                           y='suicides_no',
+                                                                                                           kind='bar',
+                                                                                                           figsize=(15,5))
+plt.show()
+
+#Numerical vs two categorical variables
+plt.figure(figsize=(15,5))
+sns.barplot(data=data,x='sex',y='suicides_no',hue='age')
+plt.show()
+-------------------------------
 Pie Plot
 When to use pie plot :- A pie chart is best used when trying to work out the composition of something. If you have categorical data then using a pie chart would work really well as each slice can represent a different category.
 
@@ -394,6 +447,28 @@ Maximum - Lowest value/record in that attribute/column .
 plt.boxplot(flights.passengers,vert=False)
 plt.show()
 
+#Probability distribution of a variable (pdf)
+sns.distplot(data)
+
+#Cumulative Distribution of a variable
+sns.distplot(data, hist_kws=dict(cumulative=True), kde_kws=dict(cumulative=True))
+
+#Plotting two numeric and one categorical variables
+sns.scatterplot(data1['Distance'], data1['Price'], hue=data1['Type'], palette='Set2') 
+
+#Point Plot
+plt.figure(figsize=(15,5))
+sns.pointplot(x="generation", y="suicides_no", hue = 'sex',  data=data)
+plt.show()
+
+#Violin plot - One categorical in x-axis and numerical in y-axis
+plt.figure(figsize=(10,5))
+sns.violinplot(x=data.generation, y=data['population'])
+plt.show()
+
+#Timeseries - Temporal Plots for Trend analysis
+data[['year','suicides_no']].groupby(['year']).sum().plot(figsize=(15,5)) #Suicides_no is the trend variable
+plt.show()
 ---------------------------------------------------------------------------------------
 
 Plot Checklist:
@@ -403,6 +478,27 @@ print("Skewness: %f" % df_train['SalePrice'].skew())
 3. Check for peakedness
 print("Kurtosis: %f" % df_train['SalePrice'].kurt())
 
+---------------------------------------------------------------------------------------
+#Plotting Mean, Median, Mode in Histogram
+
+mean=Data['GRE Score'].mean()
+median=Data['GRE Score'].median()
+mode=Data['GRE Score'].mode()
+
+print('Mean: ',mean,'\nMedian: ',median,'\nMode: ',mode[0])
+
+plt.figure(figsize=(10,5)) # set the figure size
+plt.hist(Data['GRE Score'],bins=100,color='lightblue') #Plot the histogram
+
+plt.axvline(mean,color='green',label='Mean')     # Draw lines on the plot for mean median and the two modes we have in GRE Score
+plt.axvline(median,color='blue',label='Median')
+plt.axvline(mode[0],color='red',label='Mode1')
+plt.axvline(mode[1],color='red',label='Mode2')
+
+plt.xlabel('GRE Score')   # label the x-axis
+plt.ylabel('Frequency')   # label the y-axis
+plt.legend()              # Plot the legend
+plt.show()
 ---------------------------------------------------------------------------------------
 
 # Required parameter: dataframe ... the reference pandas dataframe
@@ -467,7 +563,7 @@ gen_scatterplots(df, 'price',
 # Suptitle formatting adapted from Stackoverflow, Alexander McFarlane
 # https://stackoverflow.com/questions/7066121/
 #   how-to-set-a-single-main-title-above-all-the-subplots-with-pyplot/35676071
-
+-------------------------------------------------------------------------------------------
 # N-across scatterplots of each feature vs. target ...
 # Required parameters: dataframe ... the reference pandas dataframe
 #                      target ... (string) column name of the target variable
@@ -680,7 +776,69 @@ def gen_linecharts_rolling(dataframe, roll_num, cols=1, file=None):
     
     return
 ---------------------------------------------------------------------------------------
+#Encoders
 
+#One Hot Encoding
+df_dummies= pd.get_dummies(data1, prefix='Park', columns=['ParkingArea']) #This function does One-Hot-Encoding on categorical text
+
+from sklearn.preprocessing import OneHotEncoder
+hotencoder = OneHotEncoder()
+encoded = hotencoder.fit_transform(df_dummies.RegionId.values.reshape(-1,1)).toarray() 
+# Returns a numpy array of one hot encoded variables encoded
+
+#Label Encoding
+from sklearn.preprocessing import LabelEncoder   # import label encoder
+labelencoder = LabelEncoder()  
+df_dummies['RegionId'] = labelencoder.fit_transform(df_dummies.Regionname) # returns label encoded variable(s)
+
+---------------------------------------------------------------------------------------
+#Normalization and Scaling
+
+#StandardScaler :  Essentially returns the z-scores of every attribute z = (x-u)/sigma
+from sklearn.preprocessing import StandardScaler
+std_scale = StandardScaler()
+std_scale
+data1['Bedroom_Stdscale'] = std_scale.fit_transform(data1[['Bedroom']]) # returns z-scores of the values of the attribute
+
+#Converting the entire dataframe into corresponding z-scores
+from scipy import stats
+import numpy as np
+z = np.abs(stats.zscore(boston_df))   # get the z-score of every value with respect to their columns
+print(z)
+
+threshold = 3
+np.where(z > threshold)
+
+boston_df1 = boston_df[(z < 3).all(axis=1)]    # Select only the rows without a single outlier
+boston_df1.shape, boston_df.shape
+
+boston_df2 = boston_df.copy()   #make a copy of the dataframe
+#Replace all the outliers with median values. This will create new some outliers but, we will ignore them
+
+for i, j in zip(np.where(z > threshold)[0], np.where(z > threshold)[1]):# iterate using 2 variables.i for rows and j for columns
+    boston_df2.iloc[i,j] = boston_df.iloc[:,j].median()  # replace i,jth element with the median of j i.e, corresponding column
+
+#MinMaxScaler : z = (x - min) / (max - min)
+from sklearn.preprocessing import MinMaxScaler
+minmax_scale = MinMaxScaler()
+minmax_scale
+data1['Car_MinMaxScale'] = minmax_scale.fit_transform(data1[['Car']])
+
+#Log Transformer - Custom method
+# Transform an attribute using a mathematical transformation.
+# We might want to do that to change the distribution shape of the data
+from sklearn.preprocessing import FunctionTransformer   
+log_transformer = FunctionTransformer(np.log1p)
+log_transformer
+#Impute any missing values before applying the fit_transform method
+data1['Distance_logtransform'] = log_transformer.fit_transform(data1[['Distance']])   # Log Transform the attribute 
+
+#Exponential Transformer - Custom Method
+exp_transformer = FunctionTransformer(np.exp) # Exponential transform 
+exp_transformer
+data1['Rooms_exptransform'] = exp_transformer.fit_transform(data1[['Rooms']])  #returns the exponential transform of the data
+
+---------------------------------------------------------------------------------------
 Normality - When we talk about normality what we mean is that the data should look like a normal distribution. This is important because several statistic tests rely on this (e.g. t-statistics). In this exercise we'll just check univariate normality for 'SalePrice' (which is a limited approach). Remember that univariate normality doesn't ensure multivariate normality (which is what we would like to have), but it helps. Another detail to take into account is that in big samples (>200 observations) normality is not such an issue. However, if we solve normality, we avoid a lot of other problems (e.g. heteroscedacity) so that's the main reason why we are doing this analysis.
 
 Homoscedasticity - I just hope I wrote it right. Homoscedasticity refers to the 'assumption that dependent variable(s) exhibit equal levels of variance across the range of predictor variable(s)' (Hair et al., 2013). Homoscedasticity is desirable because we want the error term to be the same across all values of the independent variables.
