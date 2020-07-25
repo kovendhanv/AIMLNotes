@@ -405,6 +405,282 @@ print("Kurtosis: %f" % df_train['SalePrice'].kurt())
 
 ---------------------------------------------------------------------------------------
 
+# Required parameter: dataframe ... the reference pandas dataframe
+# Optional parameters: title ... (string) chart title
+#                      file  ... (string) path+filename if you want to save image
+
+half_masked_corr_heatmap(df, 'CA Housing Price Data - Variable Correlations')
+
+def half_masked_corr_heatmap(dataframe, title=None, file=None):
+    plt.figure(figsize=(9,9))
+    sns.set(font_scale=1)
+
+    mask = np.zeros_like(dataframe.corr())
+    mask[np.triu_indices_from(mask)] = True
+
+    with sns.axes_style("white"):
+        sns.heatmap(dataframe.corr(), mask=mask, annot=True, cmap='coolwarm')
+
+    if title: plt.title(f'\n{title}\n', fontsize=18)
+    plt.xlabel('')    # optional in case you want an x-axis label
+    plt.ylabel('')    # optional in case you want a  y-axis label
+    if file: plt.savefig(file, bbox_inches='tight')
+    plt.show();
+    
+    return
+---------------------------------------------------------------------------------------
+# Function: Corr to a Target Variable (heat-spectrum)
+
+corr_to_target(df, 'price', 'CA Housing Price Data - Corr to Price','./plot_blog_images/07_corr_to_price.jpg')
+              
+# Required parameters: dataframe ... the reference pandas dataframe
+#                      target ... (string) column name of the target variable
+# Optional parameters: title ... (string) chart title
+#                      file  ... (string) path+filename if you want to save image
+
+def corr_to_target(dataframe, target, title=None, file=None):
+    plt.figure(figsize=(4,6))
+    sns.set(font_scale=1)
+    
+    sns.heatmap(dataframe.corr()[[target]].sort_values(target,
+                                                ascending=False)[1:],
+                annot=True,
+                cmap='coolwarm')
+    
+    if title: plt.title(f'\n{title}\n', fontsize=18)
+    plt.xlabel('')    # optional in case you want an x-axis label
+    plt.ylabel('')    # optional in case you want a  y-axis label
+    if file: plt.savefig(file, bbox_inches='tight')
+    plt.show();
+    
+    return
+    
+---------------------------------------------------------------------------------------
+# Function: Scatterplots of All Features vs. Target
+
+feature_cols = [col for col in df.columns if col != 'price']
+gen_scatterplots(df, 'price',
+                 feature_cols,
+                 3,
+                 './plot_blog_images/09_feature_target_scatter_plots.jpg'
+                )
+# Suptitle formatting adapted from Stackoverflow, Alexander McFarlane
+# https://stackoverflow.com/questions/7066121/
+#   how-to-set-a-single-main-title-above-all-the-subplots-with-pyplot/35676071
+
+# N-across scatterplots of each feature vs. target ...
+# Required parameters: dataframe ... the reference pandas dataframe
+#                      target ... (string) column name of the target variable
+
+# Optional parameters: title ... (string) chart title
+#                      file  ... (string) path+filename if you want to save image
+
+
+def gen_scatterplots(dataframe, target_column, list_of_columns, cols=1, file=None):
+    rows      = math.ceil(len(list_of_columns)/cols)
+    figwidth  = 5 * cols
+    figheight = 4 * rows
+
+    fig, ax = plt.subplots(nrows   = rows,
+                           ncols   = cols,
+                           figsize = (figwidth, figheight))
+    
+    color_choices = ['blue', 'grey', 'goldenrod', 'r', 'black', 'darkorange', 'g']
+
+    plt.subplots_adjust(wspace=0.3, hspace=0.3)
+    ax = ax.ravel()         # Ravel turns a matrix into a vector... easier to iterate
+
+    for i, column in enumerate(list_of_columns):
+        ax[i].scatter(dataframe[column],
+                      dataframe[target_column],
+                      color=color_choices[i % len(color_choices)],
+                      alpha = 0.1)
+
+#           Individual subplot titles, optional
+#             ax[i].set_title(f'{column} vs. {target_column}', fontsize=18)
+
+        ax[i].set_ylabel(f'{target_column}', fontsize=14)
+        ax[i].set_xlabel(f'{column}', fontsize=14)
+
+    fig.suptitle('\nEach Feature vs. Target Scatter Plots', size=24)
+    fig.tight_layout()
+    fig.subplots_adjust(bottom=0, top=0.88)
+    if file: plt.savefig(file, bbox_inches='tight')
+    plt.show();
+    return
+---------------------------------------------------------------------------------------
+# Function: N-across Histograms of Each Variable
+gen_histograms(df, 3,
+               './plot_blog_images/11_all_var_histograms.jpg'
+              )
+# N-across Histograms of each variable in the dataframe ...
+# Required parameter: dataframe ... the reference pandas dataframe
+
+# Optional parameters: cols ... no. of subplot columns across fig; default=1
+#                      file  ... (string) path+filename if you want to save image
+
+def gen_histograms(dataframe, cols=1, file=None):
+    rows      = math.ceil(len(dataframe.columns)/cols)
+    figwidth  = 5 * cols
+    figheight = 4 * rows
+
+    fig, ax = plt.subplots(nrows   = rows,
+                           ncols   = cols,
+                           figsize = (figwidth, figheight))
+    
+    color_choices = ['blue', 'grey', 'goldenrod', 'r', 'black', 'darkorange', 'g']
+    ax = ax.ravel()         # Ravel turns a matrix into a vector... easier to iterate
+
+    for i, column in enumerate(dataframe.columns):
+        ax[i].hist(dataframe[column],
+                      color=color_choices[i % len(color_choices)],
+                      alpha = 1)
+        
+        ax[i].set_title(f'{dataframe[column].name}', fontsize=18)
+        ax[i].set_ylabel('Observations', fontsize=14)
+        ax[i].set_xlabel('', fontsize=14)
+        
+    fig.suptitle('\nHistograms for All Variables in Dataframe', size=24)
+    fig.tight_layout()
+    fig.subplots_adjust(bottom=0, top=0.88)
+    if file: plt.savefig(file, bbox_inches='tight')
+    plt.show();
+
+    return
+
+---------------------------------------------------------------------------------------
+# Function: Boxplots
+
+gen_boxplots(df, 3,
+             './plot_blog_images/13_all_var_boxplots.jpg'
+            )
+
+# N-across boxplots of each variable in the dataframe ...
+# Required parameter: dataframe ... the reference pandas dataframe
+
+# Optional parameters: cols ... no. of subplot columns across fig; default=1
+#                      file  ... (string) path+filename if you want to save image
+
+
+def gen_boxplots(dataframe, cols=1, file=None):
+    rows      = math.ceil(len(dataframe.columns)/cols)
+    figwidth  = 5 * cols
+    figheight = 4 * rows
+
+    fig, ax = plt.subplots(nrows   = rows,
+                           ncols   = cols,
+                           figsize = (figwidth, figheight))
+    
+    plt.subplots_adjust(wspace=0.3, hspace=0.3)
+    ax = ax.ravel()         # Ravel turns a matrix into a vector... easier to iterate
+
+    for i, column in enumerate(dataframe.columns):
+        ax[i].boxplot(dataframe[column])
+        
+        ax[i].set_title(f'{dataframe[column].name}', fontsize=18)
+        ax[i].set_ylabel('', fontsize=14)
+        ax[i].set_xlabel('', fontsize=14)
+        ax[i].tick_params(labelbottom=False)
+        
+    fig.suptitle('\nBoxplots for All Variables in Dataframe', size=24)
+    fig.tight_layout()
+    fig.subplots_adjust(bottom=0, top=0.88)
+    if file: plt.savefig(file, bbox_inches='tight')
+    plt.show();
+
+    return
+
+---------------------------------------------------------------------------------------
+# Function: N-across Line Charts
+
+gen_linecharts(df, 3,
+               './plot_blog_images/15_all_var_line_charts.jpg'
+              )
+
+# N-across Line Charts of each variable in the dataframe ...
+# Required parameter: dataframe ... the reference pandas dataframe
+
+# Optional parameters: cols ... no. of subplot columns across fig; default=1
+#                      file  ... (string) path+filename if you want to save image
+
+
+def gen_linecharts(dataframe, cols=1, file=None):
+    list_of_columns = list(dataframe.columns)
+    rows      = math.ceil(len(list_of_columns)/cols)
+    figwidth  = 5 * cols
+    figheight = 4 * rows
+
+    fig, ax = plt.subplots(nrows   = rows,
+                           ncols   = cols,
+                           figsize = (figwidth, figheight))
+    
+    color_choices = ['blue', 'grey', 'goldenrod', 'r', 'black', 'darkorange', 'g']
+
+    plt.subplots_adjust(wspace=0.3, hspace=0.3)
+    ax = ax.ravel()         # Ravel turns a matrix into a vector... easier to iterate
+
+    for i, column in enumerate(list_of_columns):
+        ax[i].plot(dataframe[column],
+                   color=color_choices[i % len(color_choices)])
+        
+        ax[i].set_title(f'{column}', fontsize=18)
+        ax[i].set_ylabel(f'{column}', fontsize=14)
+        
+    fig.suptitle('\nLine Graphs for All Variables in Dataframe', size=24)
+    fig.tight_layout()
+    fig.subplots_adjust(bottom=0, top=0.88)
+    if file: plt.savefig(file, bbox_inches='tight')
+    plt.show();
+    
+    return
+
+---------------------------------------------------------------------------------------
+# Function: N-across Line Charts with User-specified Rolling Averages
+
+gen_linecharts_rolling(df, 150, 3,
+                      './plot_blog_images/17_all_var_rolling_line_charts.jpg'
+                      )
+# N-across Rolling Avg Line Charts of each variable in the dataframe ...
+# Required parameters: dataframe ... the reference pandas dataframe
+#                      roll_num ... periods over which to calc rolling avg
+
+# Optional parameters: cols ... no. of subplot columns across fig; default=1
+#                      file  ... (string) path+filename if you want to save image
+
+def gen_linecharts_rolling(dataframe, roll_num, cols=1, file=None):
+    list_of_columns = list(dataframe.columns)    
+    rows      = math.ceil(len(list_of_columns)/cols)
+    figwidth  = 5 * cols
+    figheight = 4 * rows
+    
+    dataframe = dataframe.rolling(roll_num).mean()
+
+    fig, ax = plt.subplots(nrows   = rows,
+                           ncols   = cols,
+                           figsize = (figwidth, figheight))
+    
+    color_choices = ['blue', 'grey', 'goldenrod', 'r', 'black', 'darkorange', 'g']
+
+    plt.subplots_adjust(wspace=0.3, hspace=0.3)
+    ax = ax.ravel()         # Ravel turns a matrix into a vector... easier to iterate
+
+    for i, column in enumerate(list_of_columns):
+        ax[i].plot(dataframe[column],
+                   color=color_choices[i % len(color_choices)])
+        
+        ax[i].set_title(f'{column}', fontsize=18)
+        ax[i].set_ylabel(f'{column}', fontsize=14)
+        ax[i].set_xlabel('Time', fontsize=14)
+        
+    fig.suptitle('\nRolling Avg. Line Graphs (all vars)', size=24)
+    fig.tight_layout()
+    fig.subplots_adjust(bottom=0, top=0.88)
+    if file: plt.savefig(file, bbox_inches='tight')
+    plt.show();
+    
+    return
+---------------------------------------------------------------------------------------
+
 Normality - When we talk about normality what we mean is that the data should look like a normal distribution. This is important because several statistic tests rely on this (e.g. t-statistics). In this exercise we'll just check univariate normality for 'SalePrice' (which is a limited approach). Remember that univariate normality doesn't ensure multivariate normality (which is what we would like to have), but it helps. Another detail to take into account is that in big samples (>200 observations) normality is not such an issue. However, if we solve normality, we avoid a lot of other problems (e.g. heteroscedacity) so that's the main reason why we are doing this analysis.
 
 Homoscedasticity - I just hope I wrote it right. Homoscedasticity refers to the 'assumption that dependent variable(s) exhibit equal levels of variance across the range of predictor variable(s)' (Hair et al., 2013). Homoscedasticity is desirable because we want the error term to be the same across all values of the independent variables.
