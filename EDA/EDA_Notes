@@ -1,3 +1,8 @@
+AIMLNotes/EDA-Notes
+@kovendhanv
+kovendhanv Update EDA-Notes
+Latest commit b701a21 22 days ago
+  
 ----------------------------------NUMPY-----------------------------------------------------
 
 #Different ways to create a numpy array
@@ -145,6 +150,35 @@ pd.read_csv('u.data',sep="\t",names=['user_id','item_id','rating','timestamp']).
 #Use latin-1 encoder when utf-8 codec fails during dataset import
 pd.read_csv('u.item',sep="|",encoding="latin-1",names=list("ABCDEFGHIJKLMNOPQRSTUVWX")).head()
 
+#Importing json dataset 
+# Need requests to connect to the URL, json to convert JSON to dict
+import requests, json
+import pprint
+api_key = "AIzaSyBXrK8md7uaOcpRpaluEGZAtdXS4pcI5xo"
+url = "https://maps.googleapis.com/maps/api/geocode/json?address={0}&key={1}".format(address, api_key)
+r = requests.get(url)
+
+# The r.text attribute contains the text in the response object
+print(type(r.text))
+print(r.text)
+# converting the json object to a dict using json.loads()
+r_dict = json.loads(r.text)
+
+# the pretty printing library pprint makes it easy to read large dictionaries
+pprint.pprint(r_dict)
+
+#Importing data from PDF files 
+import PyPDF2
+# reading the pdf file
+pdf_object = open('animal_farm.pdf', 'rb')
+pdf_reader = PyPDF2.PdfFileReader(pdf_object)
+# Number of pages in the PDF file
+print(pdf_reader.numPages)
+# get a certain page's text
+page_object = pdf_reader.getPage(5)
+# Extract text from the page_object
+print(page_object.extractText())
+
 ---------------------------------------------------------------------------------------
 #isin() function to check whether the dataframe column value is present in given list.
 df[df['Name'].isin(l1)]
@@ -167,6 +201,71 @@ titanic = sns.load_dataset('titanic')
 titanic.describe()   # decribe only gives the continous columns. Excludes categorical columns automatically
 titanic.describe(include='object').T  # ".T" is used for transpose
 titanic.describe(include='all')  #used for see all type columns in dataframe
+
+# summing up the missing values (column-wise)
+df.isnull().sum()
+
+'''
+The functions any() and all() are quite useful to identify rows and columns having missing values:
+
+any() returns True when at least one value satisfies a condition (equivalent to logical or)
+all() returns True when all the values satisfy a condition (equivalent to logical and)
+'''
+# columns having at least one missing value
+df.isnull().any()
+
+# above is equivalent to axis=0 (by default, any() operates on columns)
+df.isnull().any(axis=0)
+
+# rows having all missing values
+df.isnull().all(axis=1)
+
+# sum it up to check how many rows have all missing values
+df.isnull().all(axis=1).sum()
+
+# sum of misisng values in each row
+df.isnull().sum(axis=1)
+
+# summing up the missing values (column-wise) Showing as % of missing values 
+round(100*(df.isnull().sum()/len(df.index)), 2)
+
+#rows having more than 5 missing values 
+df[df.isnull().sum(axis=1) > 5]
+
+# count the number of rows having > 5 missing values
+# use len(df.index)
+len(df[df.isnull().sum(axis=1) > 5].index)
+
+# 4278 rows have more than 5 missing values
+# calculate the percentage
+100*(len(df[df.isnull().sum(axis=1) > 5].index) / len(df.index))
+
+# removing NaN Price rows
+df = df[~np.isnan(df['Price'])]
+round(100*(df.isnull().sum()/len(df.index)), 2)
+
+# rows having Lattitude and Longitude missing
+df[np.isnan(df['Lattitude'])]
+
+# imputing Lattitude and Longitude by mean values
+df.loc[np.isnan(df['Lattitude']), ['Lattitude']] = df['Lattitude'].mean()
+df.loc[np.isnan(df['Longtitude']), ['Longtitude']] = df['Longtitude'].mean()
+round(100*(df.isnull().sum()/len(df.index)), 2)
+
+#Imputing categorical variables -with Mode 
+# converting to type 'category'
+df['Car'] = df['Car'].astype('category')
+# displaying frequencies of each category
+df['Car'].value_counts()
+
+df.loc[pd.isnull(df['Car']), ['Car']] = df['Car'].mode()
+round(100*(df.isnull().sum()/len(df.index)), 2)
+
+
+
+#Show missing values in Heatmap
+sns.heatmap(df.isnull())
+plt.show()
 
 # Function to calculate missing values by column
 def missing_values_table(df):
@@ -204,6 +303,8 @@ am2 = round(titanic[titanic['alone']==False]['age'].mean())
 #Filling NA values with mean of the corresponding column
 titanic['age'] = titanic.groupby('alone')['age'].transform(lambda x:x.fillna(round(x.mean())))
 titanic.isnull().sum() #check the null value count for each column
+
+
 
 --------------------------DATAVIZ---------------------------------------
 
@@ -311,3 +412,4 @@ Homoscedasticity - I just hope I wrote it right. Homoscedasticity refers to the 
 Linearity- The most common way to assess linearity is to examine scatter plots and search for linear patterns. If patterns are not linear, it would be worthwhile to explore data transformations. However, we'll not get into this because most of the scatter plots we've seen appear to have linear relationships.
 
 Absence of correlated errors - Correlated errors, like the definition suggests, happen when one error is correlated to another. For instance, if one positive error makes a negative error systematically, it means that there's a relationship between these variables. This occurs often in time series, where some patterns are time related. We'll also not get into this. However, if you detect something, try to add a variable that can explain the effect you're getting. That's the most common solution for correlated errors.
+
